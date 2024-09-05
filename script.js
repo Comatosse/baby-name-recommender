@@ -1,31 +1,30 @@
-// Fetch the CSV file and parse it
 let namesData = [];
 
+// Fetch and parse the CSV
 fetch('baby_names.csv')
   .then(response => response.text())
   .then(data => {
-    namesData = parseCSV(data); // Parse the CSV data into an array
+    namesData = parseCSV(data);
   });
 
 document.getElementById('filterBtn').addEventListener('click', function() {
   const startingLetter = document.getElementById('startingLetter').value.toLowerCase();
-  const minPopularity = parseInt(document.getElementById('popularity').value, 10);
   const selectedGender = document.getElementById('gender').value;
+  const lastName = document.getElementById('lastName').value;
 
-  // Filter names based on user input
+  // Filter the names
   const filteredNames = namesData.filter(name => {
     const nameMatch = !startingLetter || name.Name.toLowerCase().startsWith(startingLetter);
-    const popularityMatch = !minPopularity || parseInt(name.Count, 10) >= minPopularity;
     const genderMatch = selectedGender === 'any' || name.Gender === selectedGender;
+    const alliterates = checkAlliteration(name.Name, lastName);
 
-    return nameMatch && popularityMatch && genderMatch;
+    return nameMatch && genderMatch && alliterates;
   });
 
-  displayNames(filteredNames);
+  displayNames(filteredNames, lastName);
 });
 
-// Display the filtered names
-function displayNames(names) {
+function displayNames(names, lastName) {
   const namesOutput = document.getElementById('namesOutput');
   namesOutput.innerHTML = '';
 
@@ -35,13 +34,21 @@ function displayNames(names) {
   }
 
   names.forEach(name => {
+    const syllables = countSyllables(name.Name);
+    const description = getNameDescription(name.Name);
+    const popularity = getPopularityStatement(namesData.filter(n => n.Name === name.Name));
+
     const li = document.createElement('li');
-    li.textContent = `${name.Name} (${name.Gender === 'M' ? 'Male' : 'Female'}) - Popularity: ${name.Count} (Year: ${name.Year})`;
+    li.innerHTML = `
+      <strong>${name.Name}</strong> (${name.Gender === 'M' ? 'Male' : 'Female'}) - Syllables: ${syllables}
+      <br>Description: ${description}
+      <br>Popularity: ${popularity}
+    `;
     namesOutput.appendChild(li);
   });
 }
 
-// Simple CSV parser for the structure: Year,Name,Gender,Count
+// CSV Parsing
 function parseCSV(data) {
   const rows = data.split('\n');
   const namesArray = [];
