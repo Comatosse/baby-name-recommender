@@ -69,6 +69,52 @@ document.addEventListener('DOMContentLoaded', function() {
       return namesArray;
     }
   
-    // Add your syllable, alliteration, and description functions here...
-  });
+    // Function to check alliteration (same starting letter as last name)
+    function checkAlliteration(firstName, lastName) {
+      if (!lastName) return true; // If last name is empty, ignore alliteration check
+      return firstName.charAt(0).toLowerCase() === lastName.charAt(0).toLowerCase();
+    }
   
+    // Function to count syllables in a name
+    function countSyllables(name) {
+      name = name.toLowerCase();
+      if (name.length <= 3) return 1;
+  
+      const vowels = 'aeiouy';
+      let syllables = 0;
+      let lastWasVowel = false;
+  
+      for (let i = 0; i < name.length; i++) {
+        const char = name.charAt(i);
+        if (vowels.indexOf(char) !== -1) {
+          if (!lastWasVowel) {
+            syllables++;
+          }
+          lastWasVowel = true;
+        } else {
+          lastWasVowel = false;
+        }
+      }
+  
+      // Remove a syllable if the name ends with 'e' (silent e rule)
+      if (name.endsWith('e')) {
+        syllables--;
+      }
+  
+      return syllables > 0 ? syllables : 1;
+    }
+  
+    // Function to generate a brief description (placeholder for now)
+    function getNameDescription(name) {
+      // For this example, we use a basic placeholder description
+      return `The name ${name} is beautiful and timeless.`;
+    }
+  
+    // Function to generate a popularity statement
+    function getPopularityStatement(filteredNames) {
+      if (filteredNames.length === 0) return 'No data available';
+  
+      const totalOccurrences = filteredNames.reduce((sum, name) => sum + parseInt(name.Count), 0);
+      return `The name has been used ${totalOccurrences} times over the years.`;
+    }
+  });  
