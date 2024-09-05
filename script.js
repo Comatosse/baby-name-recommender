@@ -6,23 +6,36 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.text())
       .then(data => {
         namesData = parseCSV(data);
+      })
+      .catch(error => {
+        console.error("Error loading CSV file:", error);
       });
   
     document.getElementById('filterBtn').addEventListener('click', function() {
-      const startingLetter = document.getElementById('startingLetter').value.toLowerCase();
-      const selectedGender = document.getElementById('gender').value;
-      const lastName = document.getElementById('lastName').value;
+      try {
+        const startingLetter = document.getElementById('startingLetter').value.toLowerCase();
+        const selectedGender = document.getElementById('gender').value;
+        const lastName = document.getElementById('lastName').value;
   
-      // Filter the names
-      const filteredNames = namesData.filter(name => {
-        const nameMatch = !startingLetter || name.Name.toLowerCase().startsWith(startingLetter);
-        const genderMatch = selectedGender === 'any' || name.Gender === selectedGender;
-        const alliterates = checkAlliteration(name.Name, lastName);
+        if (!namesData || namesData.length === 0) {
+          alert("Names data not loaded yet. Please try again.");
+          return;
+        }
   
-        return nameMatch && genderMatch && alliterates;
-      });
+        // Filter the names based on the user input
+        const filteredNames = namesData.filter(name => {
+          const nameMatch = !startingLetter || name.Name.toLowerCase().startsWith(startingLetter);
+          const genderMatch = selectedGender === 'any' || name.Gender === selectedGender;
+          const alliterates = checkAlliteration(name.Name, lastName);
   
-      displayNames(filteredNames, lastName);
+          return nameMatch && genderMatch && alliterates;
+        });
+  
+        displayNames(filteredNames, lastName);
+      } catch (error) {
+        console.error("Error processing filter:", error);
+        alert("An error occurred while processing your request. Please check the console for more details.");
+      }
     });
   
     function displayNames(names, lastName) {
@@ -56,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
       rows.forEach(row => {
         const [Year, Name, Gender, Count] = row.split(',');
   
-        if (Name) {
+        if (Name && Gender && Count) {
           namesArray.push({
             Year,
             Name,
@@ -106,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
     // Function to generate a brief description (placeholder for now)
     function getNameDescription(name) {
-      // For this example, we use a basic placeholder description
+      // Placeholder description
       return `The name ${name} is beautiful and timeless.`;
     }
   
@@ -117,4 +130,5 @@ document.addEventListener('DOMContentLoaded', function() {
       const totalOccurrences = filteredNames.reduce((sum, name) => sum + parseInt(name.Count), 0);
       return `The name has been used ${totalOccurrences} times over the years.`;
     }
-  });  
+  });
+  
