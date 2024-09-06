@@ -16,6 +16,20 @@ body {
   h1 {
     text-align: center;
   }
+
+  p {
+    font-size: 12px;
+    text-align: center;
+  }
+
+  a {
+    color: rgb(120, 120, 120);
+    text-decoration: none;
+  }
+
+  .disclaimer {
+    color: rgb(175, 175, 175);
+  }
   
   .filter-section {
     display: flex;

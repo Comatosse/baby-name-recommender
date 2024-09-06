@@ -17,9 +17,13 @@
       <label for="lastName">Last Name:</label>
       <input type="text" id="lastName">
 
+      <label>
+        <input type="checkbox" id="compareSyllables" /> Compare Syllables with Last Name?
+      </label>
+
       <label for="gender">Gender:</label>
       <select id="gender">
-        <option value="any">Any</option>
+        <option value="any">None</option>
         <option value="M">Male</option>
         <option value="F">Female</option>
       </select>
@@ -29,6 +33,12 @@
 
     <div class="name-list">
       <ul id="namesOutput"></ul>
+    </div>
+
+    <div class="disclaimer">
+      <p>This data was collated at <a href="www.ssa.gov/oact/babynames/names.zip">www.ssa.gov/oact/babynames/names.zip</a>, and has been edited down to include only the last 15 years worth of data, purging over 1.7 million entries (performance limitations required this).</p>
+        
+      <p>This site was created by Reef Bendl and is licenced under the <a href="https://opensource.org/license/mit">MIT licence.</a></p>
     </div>
   </div>
 
