@@ -25,7 +25,7 @@ Welcome to the Baby Name Recommender! This web application helps users find baby
 ├── style.css # CSS file for styling the application
 ├── script.js # JavaScript file for the main application logic
 ├── filterWorker.js # Web Worker for handling name filtering
-└──baby_names.csv # CSV file containing baby names data
+└── baby_names.csv # CSV file containing baby names data
 ```
 ## Getting Started
 
