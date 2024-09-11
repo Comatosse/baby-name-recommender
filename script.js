@@ -1,10 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     let namesData = [];
-    let filteredNames = [];  // Stores the filtered names for pagination
+    let filteredNames = [];
     let currentPage = 1;
-    const namesPerPage = 10;  // You can set this to 15 if needed
+    const namesPerPage = 10; // Change this to 15 if you'd like to display 15 names per page
 
-    // Load CSV data and parse it
     fetch('baby_names.csv')
         .then(response => response.text())
         .then(data => {
@@ -15,34 +14,37 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Error loading CSV file:", error);
         });
 
-    // Add click event listener for filtering
-    document.getElementById('filterBtn').addEventListener('click', function () {
+    document.getElementById('filterBtn').addEventListener('click', function() {
         const startingLetter = document.getElementById('startingLetter').value.toLowerCase();
         const selectedGender = document.getElementById('gender').value;
         const lastName = document.getElementById('lastName').value.toLowerCase();
         const compareSyllables = document.getElementById('compareSyllables').checked;
+        const lastNameStartingLetter = lastName.trim().charAt(0).toLowerCase();
 
         if (!namesData || namesData.length === 0) {
             alert("Names data not loaded yet. Please try again.");
             return;
         }
 
+        console.log("Starting Letter:", startingLetter);
+        console.log("Last Name Starting Letter:", lastNameStartingLetter);
+        console.log("Selected Gender:", selectedGender);
+        console.log("Last Name:", lastName);
+
         const worker = new Worker('filterWorker.js');
         worker.postMessage({ namesData, startingLetter, selectedGender, lastName, compareSyllables });
 
-        worker.onmessage = function (e) {
+        worker.onmessage = function(e) {
             filteredNames = e.data;
             console.log("Filtered Names:", filteredNames);
-            currentPage = 1;  // Reset to the first page
-            displayNamesForPage(currentPage);
+            goToPage(1);  // Reset to page 1 when new filter is applied
         };
 
-        worker.onerror = function (error) {
+        worker.onerror = function(error) {
             console.error("Error in Web Worker:", error);
         };
     });
 
-    // Parse CSV data
     function parseCSV(data) {
         const lines = data.split('\n');
         const result = [];
@@ -61,21 +63,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return result;
     }
 
-    // Function to display names for a specific page
-    function displayNamesForPage(page) {
+    // Function to display names with pagination
+    function displayNames(names, lastName) {
         const namesOutput = document.getElementById('namesOutput');
-        namesOutput.innerHTML = ''; // Clear previous results
+        namesOutput.innerHTML = '';
 
-        const start = (page - 1) * namesPerPage;
-        const end = start + namesPerPage;
-        const namesToShow = filteredNames.slice(start, end);
-
-        if (namesToShow.length === 0) {
+        if (names.length === 0) {
             namesOutput.innerHTML = '<li>No names found</li>';
             return;
         }
 
-        namesToShow.forEach(name => {
+        // Paginate the names to display only names for the current page
+        const startIndex = (currentPage - 1) * namesPerPage;
+        const endIndex = Math.min(startIndex + namesPerPage, names.length);
+        const paginatedNames = names.slice(startIndex, endIndex);
+
+        paginatedNames.forEach(name => {
             const syllables = countSyllables(name.Name);
             const description = getNameDescription(name.Name);
             const popularity = getPopularityStatement(namesData.filter(n => n.Name === name.Name));
@@ -85,55 +88,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <strong>${name.Name}</strong> (${name.Gender === 'M' ? 'Male' : 'Female'}) - Syllables: ${syllables}
                 <br>Description: ${description}
                 <br>Popularity: ${popularity}
-            `;
+                `;
             namesOutput.appendChild(li);
         });
 
-        // Update pagination controls
-        displayPaginationControls(page);
+        // Update the pagination controls
+        displayPaginationControls(currentPage);
     }
 
-    // Function to display pagination controls
-    function displayPaginationControls(page) {
-        const totalPages = Math.ceil(filteredNames.length / namesPerPage);
-        const paginationControls = document.getElementById('pagination-controls');
-        paginationControls.innerHTML = '';  // Clear previous controls
-
-        // Create "Previous" button
-        if (page > 1) {
-            const prevButton = document.createElement('button');
-            prevButton.textContent = 'Previous';
-            prevButton.onclick = () => goToPage(page - 1);
-            paginationControls.appendChild(prevButton);
-        }
-
-        // Create page number buttons
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            pageButton.onclick = () => goToPage(i);
-            if (i === page) {
-                pageButton.disabled = true;  // Disable the current page button
-            }
-            paginationControls.appendChild(pageButton);
-        }
-
-        // Create "Next" button
-        if (page < totalPages) {
-            const nextButton = document.createElement('button');
-            nextButton.textContent = 'Next';
-            nextButton.onclick = () => goToPage(page + 1);
-            paginationControls.appendChild(nextButton);
-        }
-    }
-
-    // Function to change the page
-    function goToPage(page) {
-        currentPage = page;
-        displayNamesForPage(page);
-    }
-
-    // Function to count syllables (as before)
     function countSyllables(name) {
         name = name.toLowerCase();
         if (name.length <= 3) return 1;
@@ -143,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return syllableMatches ? syllableMatches.length : 1;
     }
 
-    // Function to get a brief description of the name (dummy data for now)
     function getNameDescription(name) {
         const descriptions = {
             "John": "John is a classic name meaning 'God is gracious.'",
@@ -153,11 +114,85 @@ document.addEventListener('DOMContentLoaded', function () {
         return descriptions[name] || `The name ${name} is unique and beautiful.`;
     }
 
-    // Function to calculate name popularity
     function getPopularityStatement(names) {
         if (names.length === 0) return "No data on this name's popularity.";
-
+        
         const totalBabies = names.reduce((sum, n) => sum + parseInt(n.Count, 10), 0);
+
         return `The name has a total of ${totalBabies} occurrences.`;
     }
+
+    // Pagination logic
+    function goToPage(page) {
+        currentPage = page;
+        displayNames(filteredNames);
+    }
+
+    // Function to display pagination controls
+    function displayPaginationControls(page) {
+        const totalPages = Math.ceil(filteredNames.length / namesPerPage);
+        const paginationControls = document.getElementById('pagination-controls');
+        paginationControls.innerHTML = '';  // Clear previous controls
+    
+        const maxPagesToShow = 5; // Number of pages to show around the current page
+        const firstPage = 1;
+        const lastPage = totalPages;
+    
+        // Create "Previous" link
+        if (page > 1) {
+            const prevLink = document.createElement('a');
+            prevLink.textContent = 'Previous';
+            prevLink.onclick = () => goToPage(page - 1);
+            paginationControls.appendChild(prevLink);
+        }
+    
+        // Show "First Page" and ellipses if the current page is far from the first page
+        if (page > 2) {
+            const firstLink = document.createElement('a');
+            firstLink.textContent = '1';  // First Page
+            firstLink.onclick = () => goToPage(1);
+            paginationControls.appendChild(firstLink);
+    
+            if (page > 3) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                paginationControls.appendChild(ellipsis);
+            }
+        }
+    
+        // Display page numbers around the current page
+        for (let i = Math.max(firstPage, page - 1); i <= Math.min(lastPage, page + 1); i++) {
+            const pageLink = document.createElement('a');
+            pageLink.textContent = i;
+            pageLink.onclick = () => goToPage(i);
+            if (i === page) {
+                pageLink.style.textDecoration = 'underline';  // Underline current page
+                pageLink.style.cursor = 'default';            // Disable pointer on current page
+                pageLink.onclick = null;                      // Disable click action
+            }
+            paginationControls.appendChild(pageLink);
+        }
+    
+        // Show ellipses and "Last Page" if the current page is far from the last page
+        if (page < lastPage - 1) {
+            if (page < lastPage - 2) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                paginationControls.appendChild(ellipsis);
+            }
+    
+            const lastLink = document.createElement('a');
+            lastLink.textContent = lastPage;  // Last Page
+            lastLink.onclick = () => goToPage(lastPage);
+            paginationControls.appendChild(lastLink);
+        }
+    
+        // Create "Next" link
+        if (page < lastPage) {
+            const nextLink = document.createElement('a');
+            nextLink.textContent = 'Next';
+            nextLink.onclick = () => goToPage(page + 1);
+            paginationControls.appendChild(nextLink);
+        }
+    }    
 });

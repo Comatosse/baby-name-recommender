@@ -67,3 +67,27 @@ body {
     margin-bottom: 5px;
   }
   
+  #pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;  /* Reduce the margin-top */
+    font-family: Arial, sans-serif;
+    font-size: 14px;   /* Reduce the font size */
+}
+
+#pagination-controls span, #pagination-controls a {
+    margin: 0 5px;     /* Reduce the horizontal margin between elements */
+    color: #007BFF;    /* Blue link color */
+    cursor: pointer;
+    text-decoration: none;
+}
+
+#pagination-controls a:hover {
+    text-decoration: underline;
+}
+
+#pagination-controls a[disabled] {
+    color: grey;
+    cursor: default;
+}
