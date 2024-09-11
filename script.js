@@ -1,8 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
+    let isDoubleColumn = false;
+
+    const toggleLayoutBtn = document.getElementById('toggleLayoutBtn');
+    const nameList = document.querySelector('.name-list');
+
+    toggleLayoutBtn.addEventListener('click', function () {
+        
+        isDoubleColumn = !isDoubleColumn;
+
+        if (isDoubleColumn) {
+            nameList.classList.add('double-column');
+            toggleLayoutBtn.textContent = 'Switch to Single Column';
+        } else {
+            nameList.classList.remove('double-column');
+            toggleLayoutBtn.textContent = 'Switch to Double Column';
+        }
+    });
+
     let namesData = [];
     let filteredNames = [];
     let currentPage = 1;
-    const namesPerPage = 10; // Change this to 15 if you'd like to display 15 names per page
+    const namesPerPage = 10;
 
     fetch('baby_names.csv')
         .then(response => response.text())
@@ -37,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         worker.onmessage = function(e) {
             filteredNames = e.data;
             console.log("Filtered Names:", filteredNames);
-            goToPage(1);  // Reset to page 1 when new filter is applied
+            goToPage(1);
         };
 
         worker.onerror = function(error) {
@@ -63,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return result;
     }
 
-    // Function to display names with pagination
     function displayNames(names, lastName) {
         const namesOutput = document.getElementById('namesOutput');
         namesOutput.innerHTML = '';
@@ -73,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Paginate the names to display only names for the current page
         const startIndex = (currentPage - 1) * namesPerPage;
         const endIndex = Math.min(startIndex + namesPerPage, names.length);
         const paginatedNames = names.slice(startIndex, endIndex);
@@ -92,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
             namesOutput.appendChild(li);
         });
 
-        // Update the pagination controls
         displayPaginationControls(currentPage);
     }
 
@@ -122,23 +137,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return `The name has a total of ${totalBabies} occurrences.`;
     }
 
-    // Pagination logic
     function goToPage(page) {
         currentPage = page;
         displayNames(filteredNames);
     }
 
-    // Function to display pagination controls
     function displayPaginationControls(page) {
         const totalPages = Math.ceil(filteredNames.length / namesPerPage);
         const paginationControls = document.getElementById('pagination-controls');
-        paginationControls.innerHTML = '';  // Clear previous controls
+        paginationControls.innerHTML = '';
     
-        const maxPagesToShow = 5; // Number of pages to show around the current page
+        const maxPagesToShow = 5;
         const firstPage = 1;
         const lastPage = totalPages;
     
-        // Create "Previous" link
         if (page > 1) {
             const prevLink = document.createElement('a');
             prevLink.textContent = 'Previous';
@@ -146,10 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
             paginationControls.appendChild(prevLink);
         }
     
-        // Show "First Page" and ellipses if the current page is far from the first page
         if (page > 2) {
             const firstLink = document.createElement('a');
-            firstLink.textContent = '1';  // First Page
+            firstLink.textContent = '1';
             firstLink.onclick = () => goToPage(1);
             paginationControls.appendChild(firstLink);
     
@@ -160,20 +171,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     
-        // Display page numbers around the current page
         for (let i = Math.max(firstPage, page - 1); i <= Math.min(lastPage, page + 1); i++) {
             const pageLink = document.createElement('a');
             pageLink.textContent = i;
             pageLink.onclick = () => goToPage(i);
             if (i === page) {
-                pageLink.style.textDecoration = 'underline';  // Underline current page
-                pageLink.style.cursor = 'default';            // Disable pointer on current page
-                pageLink.onclick = null;                      // Disable click action
+                pageLink.style.textDecoration = 'underline';
+                pageLink.style.cursor = 'default';
+                pageLink.onclick = null;
             }
             paginationControls.appendChild(pageLink);
         }
     
-        // Show ellipses and "Last Page" if the current page is far from the last page
         if (page < lastPage - 1) {
             if (page < lastPage - 2) {
                 const ellipsis = document.createElement('span');
@@ -182,12 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
     
             const lastLink = document.createElement('a');
-            lastLink.textContent = lastPage;  // Last Page
+            lastLink.textContent = lastPage;
             lastLink.onclick = () => goToPage(lastPage);
             paginationControls.appendChild(lastLink);
         }
     
-        // Create "Next" link
         if (page < lastPage) {
             const nextLink = document.createElement('a');
             nextLink.textContent = 'Next';
